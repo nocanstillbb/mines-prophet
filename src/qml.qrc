@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qtquickcontrols2.conf</file>
+        <file>mines-prophet/views/main.qml</file>
+        <file>mines-prophet/views/page1.qml</file>
+    </qresource>
+</RCC>
