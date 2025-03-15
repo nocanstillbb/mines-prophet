@@ -50,27 +50,6 @@ GameVeiwmodel::GameVeiwmodel(QObject *parent) : QObject(parent)
     initCells(); //初始化
     regen(); //生成雷
 
-
-    QObject::connect(this->minesRunner_.get(), &MinesDqnRunner::sendVncMouseEvent,this,[this](int x ,int y,[[maybe_unused]] int pred_x,[[maybe_unused]]int pred_y){
-
-        STOPWATCHER(sw,"execute mouse event")
-        if(x == -1 && y == -1)
-        {
-            this->regen();
-            qDebug()<<  "regend";
-        }
-        else
-        {
-            this->open(y*m_cols + x);
-            //qDebug()<<  "opened row:" << y << "  cols:" << x;
-        }
-
-        setClickedIndex(y* m_cols + x);
-        setPredictIndex(pred_y* m_cols + pred_x);
-
-        this->minesRunner_->setEigenMat(m_visualMat,m_minesMat);
-    });
-
 }
 
 
@@ -336,15 +315,6 @@ void GameVeiwmodel::setNum(int newNum)
     emit numChanged();
 }
 
-void GameVeiwmodel::trainDnq()
-{
-    //QtConcurrent::run([this](){
-    //    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    //    this->minesRunner_->setEigenMat(m_visualMat);
-    //});
-    this->minesRunner_->train();
-
-}
 
 int GameVeiwmodel::predictIndex() const
 {

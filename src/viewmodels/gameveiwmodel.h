@@ -1,7 +1,6 @@
 #ifndef GAMEVEIWMODEL_H
 #define GAMEVEIWMODEL_H
 
-#include "src/agent/minesdqnrunner.h"
 #include <QVariantMap>
 #include <QObject>
 #include <prism/qt/core/hpp/prismQt.hpp>
@@ -98,9 +97,6 @@ private:
 public slots:
     void regen();
     void open(int i);
-
-    void trainDnq();
-
 private:
 
     Eigen::MatrixXf m_kernel;
@@ -114,7 +110,6 @@ private:
     int m_rows = 9;
     int m_cols = 9;
     int m_num = 10;
-    std::unique_ptr<MinesDqnRunner> minesRunner_ = std::make_unique<MinesDqnRunner>(m_rows,m_cols,m_num,m_save_data_flag,nullptr);
 
     bool m_isFirst = true;
 
