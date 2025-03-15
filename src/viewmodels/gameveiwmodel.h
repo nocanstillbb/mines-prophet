@@ -1,6 +1,7 @@
 #ifndef GAMEVEIWMODEL_H
 #define GAMEVEIWMODEL_H
 
+#include "src/agent/minesdqnrunner.h"
 #include <QVariantMap>
 #include <QObject>
 #include <prism/qt/core/hpp/prismQt.hpp>
@@ -54,6 +55,11 @@ class GameVeiwmodel : public QObject
     Q_PROPERTY(int rows READ rows WRITE setRows NOTIFY rowsChanged)
     Q_PROPERTY(int cols READ cols WRITE setCols NOTIFY colsChanged)
     Q_PROPERTY(int num READ num WRITE setNum NOTIFY numChanged)
+    Q_PROPERTY(int predictIndex READ predictIndex WRITE setPredictIndex NOTIFY predictIndexChanged)
+
+    Q_PROPERTY(int clickedIndex READ clickedIndex WRITE setClickedIndex NOTIFY clickedIndexChanged)
+
+    Q_PROPERTY(bool save_data_flag READ save_data_flag WRITE setSave_data_flag NOTIFY save_data_flagChanged)
 
 public:
     explicit GameVeiwmodel(QObject *parent = nullptr);
@@ -74,6 +80,15 @@ public:
     int num() const;
     void setNum(int newNum);
 
+    int predictIndex() const;
+    void setPredictIndex(int newPredictIndex);
+
+    int clickedIndex() const;
+    void setClickedIndex(int newClickedIndex);
+
+    bool save_data_flag() const;
+    void setSave_data_flag(bool newSave_data_flag);
+
 private:
     Eigen::MatrixXf conv3x3(const Eigen::MatrixXf& input, const Eigen::MatrixXf& kernel);
     void initCells();
@@ -84,16 +99,32 @@ public slots:
     void regen();
     void open(int i);
 
+    void trainDnq();
+
 private:
 
     Eigen::MatrixXf m_kernel;
     Eigen::MatrixXf m_minesMat;
     Eigen::MatrixXf m_visualMat;
+    //高级
+    //int m_rows = 16;
+    //int m_cols = 30;
+    //int m_num = 100;
 
-    int m_rows = 16;
-    int m_cols = 30;
-    int m_num = 100;
+    int m_rows = 9;
+    int m_cols = 9;
+    int m_num = 10;
+    std::unique_ptr<MinesDqnRunner> minesRunner_ = std::make_unique<MinesDqnRunner>(m_rows,m_cols,m_num,m_save_data_flag,nullptr);
+
     bool m_isFirst = true;
+
+
+
+    int m_predictIndex = -1;
+
+    int m_clickedIndex = -1;
+
+    bool m_save_data_flag =false;
 
 signals:
 
@@ -101,6 +132,12 @@ signals:
     void rowsChanged();
     void colsChanged();
     void numChanged();
+
+    void clicked(int x ,int y,int p_x ,int p_y);
+
+    void predictIndexChanged();
+    void clickedIndexChanged();
+    void save_data_flagChanged();
 };
 
 #endif // GAMEVEIWMODEL_H

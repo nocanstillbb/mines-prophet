@@ -14,8 +14,8 @@ import prism_qt_ui 1.0
 import viewmodels 1.0
 
 ApplicationWindow {
-    width: 640
-    height: 480
+    width: 480
+    height: 640
     visible: true
     title: qsTr("Tabs")
 

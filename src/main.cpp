@@ -1,8 +1,11 @@
+
+#include "viewmodels/gameveiwmodel.h"
+
 #include <prism/qt/modular/interfaces/intf_module.h>
 #include <prism/qt/modular/wrapper.h>
 #include <prism/container.hpp>
+#include <prism/qt/core/helper/stopwatch.h>
 
-#include "viewmodels/gameveiwmodel.h"
 
 #include <QQuickView>
 #include <QGuiApplication>
@@ -77,6 +80,7 @@ int main(int argc, char* argv[])
     });
 
     int exitCode = w.run();
+    STOPWATCHER_DUMP2FILE;
     return exitCode;
 
 }

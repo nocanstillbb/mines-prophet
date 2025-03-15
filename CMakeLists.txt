@@ -19,6 +19,7 @@ find_package(Eigen3 CONFIG REQUIRED)
 
 find_package(prism COMPONENTS container qt::modular qt::core qt::ui)
 find_package(OpenCV CONFIG REQUIRED)
+find_package(Torch REQUIRED)
 
 set(PROJECT_SOURCES
         src/main.cpp
@@ -26,6 +27,10 @@ set(PROJECT_SOURCES
 
         src/viewmodels/gameveiwmodel.h
         src/viewmodels/gameveiwmodel.cpp
+
+
+        src/agent/minesdqnrunner.h
+        src/agent/minesdqnrunner.cpp
 
 
 )
@@ -64,8 +69,9 @@ target_link_libraries(mines-prophet PRIVATE
     prism::qt::ui
 
     nlohmann_json::nlohmann_json
-    Eigen3::Eigen
 
+    Eigen3::Eigen
+    "${TORCH_LIBRARIES}"
     opencv_core
     opencv_imgcodecs
 

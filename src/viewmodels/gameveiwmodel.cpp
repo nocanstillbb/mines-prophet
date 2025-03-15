@@ -1,14 +1,17 @@
 #include "gameveiwmodel.h"
+#include <prism/qt/core/helper/stopwatch.h>
 #include <iostream>
 #include <sstream>
 #include <random>
 #include <set>
+#include <QtConcurrent/QtConcurrent>
 #include <QDebug>
 
 namespace  {
 
 QDebug operator<<(QDebug debug, Eigen::MatrixXf value) {
     std::stringstream ss ;
+    ss << std::endl;
     ss << value;
     debug << ss.str().c_str();
     return debug;
@@ -47,10 +50,28 @@ GameVeiwmodel::GameVeiwmodel(QObject *parent) : QObject(parent)
     initCells(); //初始化
     regen(); //生成雷
 
+
+    QObject::connect(this->minesRunner_.get(), &MinesDqnRunner::sendVncMouseEvent,this,[this](int x ,int y,[[maybe_unused]] int pred_x,[[maybe_unused]]int pred_y){
+
+        STOPWATCHER(sw,"execute mouse event")
+        if(x == -1 && y == -1)
+        {
+            this->regen();
+            qDebug()<<  "regend";
+        }
+        else
+        {
+            this->open(y*m_cols + x);
+            //qDebug()<<  "opened row:" << y << "  cols:" << x;
+        }
+
+        setClickedIndex(y* m_cols + x);
+        setPredictIndex(pred_y* m_cols + pred_x);
+
+        this->minesRunner_->setEigenMat(m_visualMat,m_minesMat);
+    });
+
 }
-
-
-
 
 
 void GameVeiwmodel::initCells()
@@ -78,14 +99,20 @@ void GameVeiwmodel::open(int index)
 
     int row = index/cols();
     int col = index%cols();
+
     int v = m_minesMat(row,col);
+
 
     if(v == 9)//开到雷,把所有格子打开,把当前格子设置为10(红色的雷)
     {
+
         if(m_isFirst)
         {
+
             regen();
+
             open(index);
+
             return;
         }
         m_visualMat = m_minesMat;
@@ -93,32 +120,47 @@ void GameVeiwmodel::open(int index)
 
     }
     else if(v == 0)
+    {
+
         recurse_open(index);
+    }
     else
     {
+
         if(m_isFirst)
         {
+
             regen();
+
             open(index);
+
             return;
         }
         m_visualMat(row,col) = m_minesMat(row,col);
+
+
     }
 
     bool isFinished = false;
+
     int unopened = ((m_visualMat.array().cast<int>() == -1).cast<int>()).sum();
+
     int mines = ((m_minesMat.array().cast<int>() == 9).cast<int>()).sum();
+
 
     if(unopened ==  mines)
     {
+
         isFinished = true;
     }
+
 
     for(int row =0; row<rows();++row)
     {
         for(int col= 0; col<cols(); ++col)
         {
-            std::shared_ptr<prism::qt::core::prismModelProxy<CellInfo>> cell = cells()->list()->at(row*30 + col);
+
+            std::shared_ptr<prism::qt::core::prismModelProxy<CellInfo>> cell = cells()->list()->at(row*cols() + col);
             cell->instance()->visual_value = m_visualMat(row,col);
             if(isFinished && cell->instance()->value == 9)
                 cell->instance()->visual_value = 11;
@@ -127,21 +169,23 @@ void GameVeiwmodel::open(int index)
     }
 
 
-    if(m_isFirst)
-    {
-        std::stringstream ss;
-        for(int i=0; i< rows(); ++i)
-        {
-            for(int j =0; j< cols(); ++j)
-            {
-                ss << std::setw(4) << cells()->list()->at(i*30 + j)->instance()->value;
-            }
-            ss << std::endl;
-        }
-        qDebug()<< ss.str().c_str();
-    }
+
+    //if(m_isFirst)
+    //{
+    //    std::stringstream ss;
+    //    for(int i=0; i< rows(); ++i)
+    //    {
+    //        for(int j =0; j< cols(); ++j)
+    //        {
+    //            ss << std::setw(4) << cells()->list()->at(i*cols() + j)->instance()->value;
+    //        }
+    //        ss << std::endl;
+    //    }
+    //    qDebug()<< ss.str().c_str();
+    //}
 
     m_isFirst = false;
+
 }
 
 
@@ -151,10 +195,12 @@ void GameVeiwmodel::regen()
 
     std::random_device rd;  // 用于获取随机种子
     std::mt19937 gen(rd()); // Mersenne Twister 生成器
-    std::uniform_int_distribution<int> dist(0, rows()*cols() -1); // 生成 [0,480] 之间的整数
+    std::uniform_int_distribution<int> dist(0, rows()*cols() -1); // 生成 [0,m_rows * m_cols] 之间的整数
 
     m_minesMat.setConstant(-1);
     m_visualMat.setConstant(-1);
+
+
     for(std::shared_ptr<prism::qt::core::prismModelProxy<CellInfo>> cell : *this->cells()->list())
     {
         cell->instance()->value = -1;
@@ -165,7 +211,7 @@ void GameVeiwmodel::regen()
     for(int i = 0; i<num(); ++i)
     {
         retry:
-        int index = dist(gen); //0-480
+        int index = dist(gen); //0-m_rows * m_cols
         if(values.find(index) == values.end())
         {
             values.insert(index);
@@ -197,7 +243,6 @@ void GameVeiwmodel::regen()
         }
         cell->update();
     }
-
 
 }
 
@@ -289,4 +334,53 @@ void GameVeiwmodel::setNum(int newNum)
         return;
     m_num = newNum;
     emit numChanged();
+}
+
+void GameVeiwmodel::trainDnq()
+{
+    //QtConcurrent::run([this](){
+    //    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    //    this->minesRunner_->setEigenMat(m_visualMat);
+    //});
+    this->minesRunner_->train();
+
+}
+
+int GameVeiwmodel::predictIndex() const
+{
+    return m_predictIndex;
+}
+
+void GameVeiwmodel::setPredictIndex(int newPredictIndex)
+{
+    if (m_predictIndex == newPredictIndex)
+        return;
+    m_predictIndex = newPredictIndex;
+    emit predictIndexChanged();
+}
+
+int GameVeiwmodel::clickedIndex() const
+{
+    return m_clickedIndex;
+}
+
+void GameVeiwmodel::setClickedIndex(int newClickedIndex)
+{
+    if (m_clickedIndex == newClickedIndex)
+        return;
+    m_clickedIndex = newClickedIndex;
+    emit clickedIndexChanged();
+}
+
+bool GameVeiwmodel::save_data_flag() const
+{
+    return m_save_data_flag;
+}
+
+void GameVeiwmodel::setSave_data_flag(bool newSave_data_flag)
+{
+    if (m_save_data_flag == newSave_data_flag)
+        return;
+    m_save_data_flag = newSave_data_flag;
+    emit save_data_flagChanged();
 }

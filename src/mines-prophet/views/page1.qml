@@ -17,12 +17,40 @@ Rectangle {
     anchors.fill: parent
     property var vm:GameVeiwmodel
     Item{
-        Q1.Button{
-            text: "restart"
-            onClicked: {
-                vm.regen()
+        Row{
+
+            Q1.Button{
+                text: "restart"
+                onClicked: {
+                    vm.regen()
+                }
             }
+
+            Q1.Button{
+                id:btn_train
+                text: "train_dqn"
+                onClicked: {
+                    JsEx.delay(btn_train,100,function(){
+                        vm.trainDnq();
+                    })
+                }
+            }
+            Q1.Button{
+                id:btn_saveData
+                text: "save data"
+                onClicked: {
+                    vm.trainDnq();
+                    vm.save_data_flag = true
+                    JsEx.delay(btn_train,1000,function(){
+                        vm.save_data_flag = false
+                    })
+                }
+            }
+
+
         }
+
+
         anchors.fill: parent
         anchors.margins: 10
         GridLayout{
@@ -46,15 +74,19 @@ Rectangle {
                     property int value: Bind.create(rvm,"visual_value")
                     color: {
                         var v = Bind.create(rvm,"visual_value")
+                        if(vm.predictIndex === index)
+                            return Style.blue40
+                        //if(vm.clickedIndex === index)
+                        //    return Style.red40
 
                         if(v === 10)
                             return "red"
                         else if(ma.hoveredIndex === idx)
-                           return Style.gray20
+                            return Style.gray20
                         else if(v === -1)
                             return Style.gray40
                         else
-                           return Style.gray20
+                            return Style.gray20
                     }
                     Text {
                         id:tb
@@ -65,32 +97,32 @@ Rectangle {
                         color: {
                             var v = Bind.create(rvm,"visual_value")
 
-                             if(v === 1)
+                            if(v === 1)
                                 return "#0100fe"
-                             else if(v === 2)
-                                 return "#017f01"
-                             else if(v === 3)
-                                 return "#fe0000"
-                             else if(v === 4)
-                                 return "#010080"
-                             else if(v === 5)
-                                 return "#810102"
-                             else if(v === 6)
-                                 return "#008081"
-                             else if(v === 7)
-                                 return "#000000"
-                             else if(v === 8)
-                                 return "#808080"
+                            else if(v === 2)
+                                return "#017f01"
+                            else if(v === 3)
+                                return "#fe0000"
+                            else if(v === 4)
+                                return "#010080"
+                            else if(v === 5)
+                                return "#810102"
+                            else if(v === 6)
+                                return "#008081"
+                            else if(v === 7)
+                                return "#000000"
+                            else if(v === 8)
+                                return "#808080"
                             else
                                 return "black"
                         }
                         text:{
                             if(v === 9 || v===10)
-                                return "💣"
+                                return "B"
                             else if(v === -1 || v === 0)
                                 return ""
                             else if(v === 11)
-                                return "🚩"
+                                return "F"
                             else if(v ===12)
                                 return "?"
                             else
