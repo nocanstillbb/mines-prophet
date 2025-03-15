@@ -13,33 +13,26 @@ import prismCpp 1.0
 import prism_qt_ui 1.0
 import viewmodels 1.0
 
-ApplicationWindow {
+BorderlessWindow_mac{
+    //ApplicationWindow {
     width: 480
     height: 640
     visible: true
-    title: qsTr("Tabs")
-
-    SwipeView {
-        id: swipeView
+    title: qsTr("minsweeper")
+    ColumnLayout{
         anchors.fill: parent
-        currentIndex: tabBar.currentIndex
-
-        Rectangle
-        {
+        spacing: 0
+        Rectangle{
+            color: "lightblue"
+            Layout.preferredHeight: 30
+            Layout.fillWidth: true
+        }
+        Item {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
             LiveLoader{
-                anchors.fill: parent
                 source: CppUtility.transUrl("qrc:/mines-prophet/views/page1.qml")
             }
-        }
-
-    }
-
-    footer: TabBar {
-        id: tabBar
-        currentIndex: swipeView.currentIndex
-
-        TabButton {
-            text: qsTr("Page 1")
         }
     }
 }

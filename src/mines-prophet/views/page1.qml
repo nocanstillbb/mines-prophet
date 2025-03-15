@@ -26,26 +26,6 @@ Rectangle {
                 }
             }
 
-            Q1.Button{
-                id:btn_train
-                text: "train_dqn"
-                onClicked: {
-                    JsEx.delay(btn_train,100,function(){
-                        vm.trainDnq();
-                    })
-                }
-            }
-            Q1.Button{
-                id:btn_saveData
-                text: "save data"
-                onClicked: {
-                    vm.trainDnq();
-                    vm.save_data_flag = true
-                    JsEx.delay(btn_train,1000,function(){
-                        vm.save_data_flag = false
-                    })
-                }
-            }
 
 
         }
